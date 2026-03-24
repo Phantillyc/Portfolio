@@ -72,6 +72,9 @@
                             @endforeach
                         </div>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url('commissions/account') }}">Commission Account</a>
+                    </li>
                 @endif
             </ul>
 

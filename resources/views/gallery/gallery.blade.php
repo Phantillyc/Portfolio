@@ -14,6 +14,11 @@
         <h1>Gallery</h1>
     </div>
 
+    <div class="card card-body mb-4 bg-light">
+        <h4 class="mb-1">Browse the Portfolio</h4>
+        <p class="mb-0">Use filters below to quickly find projects, tags, and titles.</p>
+    </div>
+
     {!! $page ? $page->text : '' !!}
 
     <div>
