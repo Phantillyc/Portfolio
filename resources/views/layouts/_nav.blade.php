@@ -53,6 +53,10 @@
                         </a>
 
                         <div class="dropdown-menu" aria-labelledby="commDropdown">
+                            <a class="dropdown-item font-weight-bold" href="{{ url('commissions/account') }}">
+                                Commission Account
+                            </a>
+                            <div class="dropdown-divider"></div>
                             @foreach ($commissionClasses as $class)
                                 @if ($loop->count > 1)
                                     <span class="dropdown-item">
