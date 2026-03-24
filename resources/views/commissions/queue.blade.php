@@ -14,6 +14,7 @@
         <h1>
             {{ $class->name }} Queue
             <div class="float-right ml-2">
+                <a class="btn btn-primary" href="{{ url('commissions/account') }}">Commission Account</a>
                 <a class="btn btn-secondary" href="{{ url('commissions/' . $class->slug) }}">Back to Commission Info</a>
             </div>
         </h1>

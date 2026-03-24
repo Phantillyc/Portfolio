@@ -229,6 +229,9 @@ class CommissionController extends Controller {
         if (!config('aldebaran.commissions.enabled')) {
             abort(404);
         }
+        if (!$this->getLoggedInCommissioner($request)) {
+            return redirect()->to('commissions/account?redirect='.urlencode($request->fullUrl()));
+        }
 
         // Retrive type ID and if relevant key from request
         $data = $request->only(['type', 'key']);
