@@ -9,6 +9,7 @@ use App\Models\Commission\Commissioner;
 use App\Models\Commission\CommissionPayment;
 use App\Models\Commission\CommissionQuote;
 use App\Models\Commission\CommissionType;
+use App\Models\Commission\CommissionUpdateImage;
 use App\Models\Gallery\Piece;
 use App\Services\CommissionManager;
 use Carbon\Carbon;
@@ -180,6 +181,46 @@ class CommissionController extends Controller {
             'pieces'  => Piece::sort()->pluck('name', 'id')->toArray(),
             'taxCode' => $taxCode ?? null,
         ] : []));
+    }
+
+    /**
+     * Add a commission progress image entry.
+     *
+     * @param int $id
+     *
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function postCommissionUpdateImage($id, Request $request) {
+        $commission = Commission::findOrFail($id);
+        $data = $request->validate([
+            'title'            => 'required|string|max:191',
+            'image'            => 'required|image',
+            'character_name.*' => 'nullable|string|max:191',
+            'character_ref.*'  => 'nullable|url|max:1000',
+        ]);
+
+        $path = $request->file('image')->store('commission-progress', 'public');
+        $image = CommissionUpdateImage::create([
+            'commission_id' => $commission->id,
+            'title'         => $data['title'],
+            'image_path'    => $path,
+            'sort'          => ($commission->updateImages()->max('sort') ?? -1) + 1,
+        ]);
+
+        foreach ($request->get('character_name', []) as $key => $name) {
+            if (!$name) {
+                continue;
+            }
+
+            $image->characters()->create([
+                'name'          => $name,
+                'reference_url' => $request->get('character_ref')[$key] ?? null,
+            ]);
+        }
+
+        flash('Progress image added successfully.')->success();
+
+        return redirect()->back();
     }
 
     /**
@@ -643,6 +684,9 @@ class CommissionController extends Controller {
      */
     private function postCompleteCommission($id, Request $request, CommissionManager $service) {
         if ($service->completeCommission($id, $request->only(['comments']), $request->user())) {
+            if ($commission = Commission::find($id)) {
+                $commission->update(['awaiting_approval' => 1]);
+            }
             flash('Commission marked complete successfully.')->success();
         } else {
             foreach ($service->errors()->getMessages()['error'] as $error) {

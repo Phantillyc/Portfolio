@@ -8,6 +8,19 @@
     {!! breadcrumbs(['Admin Panel' => 'admin']) !!}
 
     @if (config('aldebaran.commissions.enabled'))
+        <div class="card mb-4 border-primary">
+            <div class="card-body">
+                <h3 class="mb-2">Commission Admin</h3>
+                <p class="mb-3">Manage queues, commission data, and portal settings from here.</p>
+                <div class="d-flex flex-wrap">
+                    <a href="{{ url('admin/data/commissions/classes') }}" class="btn btn-primary mr-2 mb-2">Commission Classes</a>
+                    <a href="{{ url('admin/data/commissions/categories') }}" class="btn btn-primary mr-2 mb-2">Commission Categories</a>
+                    <a href="{{ url('admin/data/commissions/types') }}" class="btn btn-primary mr-2 mb-2">Commission Types</a>
+                    <a href="{{ url('admin/site-settings') }}" class="btn btn-outline-primary mb-2">Commission Settings</a>
+                </div>
+            </div>
+        </div>
+
         @if (isset($commissionClasses) && $commissionClasses->count())
             <div class="row">
                 @foreach ($commissionClasses as $class)
