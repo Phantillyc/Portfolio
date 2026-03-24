@@ -122,11 +122,28 @@
                         {!! Form::close() !!}
                     </div>
                     <div class="col-md-12 mb-2">
+                        {!! Form::open(['url' => 'admin/site-settings/' . $class->slug . '_comms_mode']) !!}
+                        <div class="form-group h-100">
+                            <strong>{!! Form::label($class->slug . '_comms_mode_value', 'Commission Mode') !!}:</strong>
+                            open, closed, or manual.
+                            {!! Form::select(
+                                $class->slug . '_comms_mode_value',
+                                ['open' => 'Open', 'closed' => 'Closed', 'manual' => 'Manual (one request per user)'],
+                                optional($settings->where('key', $class->slug . '_comms_mode')->first())->value ?: 'open',
+                                ['class' => 'form-control'],
+                            ) !!}
+                        </div>
+                        <div class="form-group text-right mb-3">
+                            {!! Form::submit('Edit', ['class' => 'btn btn-primary']) !!}
+                        </div>
+                        {!! Form::close() !!}
+                    </div>
+                    <div class="col-md-12 mb-2">
                         {!! Form::open(['url' => 'admin/site-settings/' . $class->slug . '_status']) !!}
                         <div class="form-group h-100">
                             <strong>{!! Form::label($class->slug . '_status_value', 'Status Message') !!}:</strong>
                             {{ $settings->where('key', $class->slug . '_status')->first()->description }}
-                            {!! Form::text($class->slug . '_status_value', $settings->where('key', $class->slug . '_status')->first()->value, ['class' => 'form-control']) !!}
+                            {!! Form::textarea($class->slug . '_status_value', $settings->where('key', $class->slug . '_status')->first()->value, ['class' => 'form-control wysiwyg']) !!}
                         </div>
                         <div class="form-group text-right mb-3">
                             {!! Form::submit('Edit', ['class' => 'btn btn-primary']) !!}
@@ -147,6 +164,24 @@
                         </div>
                         {!! Form::close() !!}
                     </div>
+                    @foreach (['open' => 'Open', 'closed' => 'Closed', 'manual' => 'Manual'] as $mode => $modeName)
+                        <div class="col-md-12 mb-2">
+                            {!! Form::open(['url' => 'admin/site-settings/' . $class->slug . '_' . $mode . '_text']) !!}
+                            <div class="form-group h-100">
+                                <strong>{!! Form::label($class->slug . '_' . $mode . '_text_value', $modeName . ' Mode Text') !!}:</strong>
+                                Rich text displayed on the front page while this mode is active.
+                                {!! Form::textarea(
+                                    $class->slug . '_' . $mode . '_text_value',
+                                    optional($settings->where('key', $class->slug . '_' . $mode . '_text')->first())->value,
+                                    ['class' => 'form-control wysiwyg'],
+                                ) !!}
+                            </div>
+                            <div class="form-group text-right mb-3">
+                                {!! Form::submit('Edit', ['class' => 'btn btn-primary']) !!}
+                            </div>
+                            {!! Form::close() !!}
+                        </div>
+                    @endforeach
                 </div>
             @endforeach
         @endif

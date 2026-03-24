@@ -49,6 +49,11 @@
     @include('commissions._form_builder', ['type' => $type, 'form' => true])
 
     <div class="form-group">
+        {!! Form::label('image_count', 'Number of Images Requested') !!}
+        {!! Form::number('image_count', old('image_count', 1), ['class' => 'form-control', 'min' => 1, 'max' => 20]) !!}
+    </div>
+
+    <div class="form-group">
         {!! Form::label('quote_key', 'Quote Key' . ($type->quote_required ? '' : ' (Optional)')) !!}
         {!! Form::text('quote_key', old('commission_quote_key'), ['class' => 'form-control']) !!}
     </div>

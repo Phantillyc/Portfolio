@@ -48,6 +48,7 @@ Route::controller(CommissionController::class)->group(function () {
         Route::post('edit/{id}', 'postCommission');
         Route::post('edit/{id}/{action}', 'postCommission')
             ->where('action', 'accept|update|complete|decline|ban');
+        Route::post('edit/{id}/updates/images', 'postCommissionUpdateImage');
 
         Route::get('invoice/{id}', 'getSendInvoice');
         Route::post('invoice/{id}', 'postSendInvoice');
