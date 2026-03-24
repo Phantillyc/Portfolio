@@ -13,6 +13,7 @@
                 </div>
             @endforeach
             <div class="sidebar-item"><a href="{{ url('admin/ledger') }}" class="{{ set_active('admin/ledger*') }}">Ledger</a></div>
+            <div class="sidebar-item"><a href="{{ url('commissions/account') }}">Commission Account Page</a></div>
         </li>
     @endif
 

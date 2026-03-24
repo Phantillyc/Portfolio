@@ -83,6 +83,44 @@
     </div>
 
     @if ($commission->status == 'Accepted' || $commission->status == 'Complete')
+        <h2>Progress Images</h2>
+        @if ($latestImage)
+            <p><strong>Latest Upload:</strong> {{ $latestImage->title }}</p>
+            <img class="img-fluid img-thumbnail mb-3" src="{{ $latestImage->imageUrl }}" alt="Latest commission update image" />
+        @endif
+
+        @if ($commission->updateImages->count())
+            <div id="commission-progress-carousel" class="carousel slide mb-4" data-ride="carousel">
+                <div class="carousel-inner">
+                    @foreach ($commission->updateImages as $image)
+                        <div class="carousel-item {{ $loop->first ? 'active' : '' }}">
+                            <img class="d-block w-100" src="{{ $image->imageUrl }}" alt="{{ $image->title }}">
+                            <div class="carousel-caption d-none d-md-block bg-dark p-2 rounded">
+                                <h5>{{ $image->title }}</h5>
+                                @if ($image->characters->count())
+                                    <p>
+                                        @foreach ($image->characters as $character)
+                                            {{ $character->name }}
+                                            @if ($character->reference_url)
+                                                (<a class="text-light" href="{{ $character->reference_url }}" target="_blank" rel="noopener noreferrer">ref</a>)
+                                            @endif
+                                            {{ !$loop->last ? '・' : '' }}
+                                        @endforeach
+                                    </p>
+                                @endif
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+                <a class="carousel-control-prev" href="#commission-progress-carousel" role="button" data-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span><span class="sr-only">Previous</span>
+                </a>
+                <a class="carousel-control-next" href="#commission-progress-carousel" role="button" data-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span><span class="sr-only">Next</span>
+                </a>
+            </div>
+        @endif
+
         <h2>Pieces</h2>
         <p>These are the piece(s) associated with your commission! Pieces may have multiple images and/or pieces of
             literature, depending. Each image associated with a piece is displayed via its thumbnail, and each thumbnail
@@ -184,5 +222,29 @@
             {!! isset($commission->comments) ? $commission->comments : '<p><i>No comment provided.</i></p>' !!}
         </div>
     </div>
+
+    @if ($commission->awaiting_approval)
+        <div class="card card-body mb-4">
+            <div class="borderhr">
+                <h3>Completion Approval</h3>
+                <p>Approve completion or request revisions.</p>
+                {!! Form::open(['url' => 'commissions/view/' . $commission->commission_key . '/approval']) !!}
+                <div class="form-group">
+                    {!! Form::label('feedback', 'Message (Optional)') !!}
+                    {!! Form::textarea('feedback', null, ['class' => 'form-control']) !!}
+                </div>
+                <div class="d-flex">
+                    <button class="btn btn-success mr-2" type="submit" name="action" value="approve">Approve</button>
+                    <button class="btn btn-warning" type="submit" name="action" value="request_edits">Request Edits</button>
+                </div>
+                {!! Form::close() !!}
+            </div>
+        </div>
+    @elseif ($commission->client_feedback)
+        <div class="alert alert-info">
+            <strong>Your latest feedback:</strong><br>
+            {!! nl2br(e($commission->client_feedback)) !!}
+        </div>
+    @endif
 
 @endsection

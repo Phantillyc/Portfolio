@@ -53,6 +53,11 @@ Route::controller(MailingListController::class)->prefix('mailing-lists')->group(
 });
 
 Route::controller(CommissionController::class)->prefix('commissions')->group(function () {
+    Route::get('account', 'getAccount');
+    Route::post('account/register', 'postRegisterAccount');
+    Route::post('account/login', 'postLoginAccount');
+    Route::post('account/logout', 'postLogoutAccount');
+
     Route::get('{class}', 'getInfo');
     Route::get('{class}/tos', 'getTos');
     Route::get('{class}/queue', 'getQueue');
@@ -65,6 +70,7 @@ Route::controller(CommissionController::class)->prefix('commissions')->group(fun
 
     Route::get('view/{key}', 'getViewCommission');
     Route::get('view/{key}/{id}', 'getViewCommissionImage');
+    Route::post('view/{key}/approval', 'postCommissionApproval');
 
     Route::get('{class}/quotes/new', 'getNewQuote');
     Route::get('quotes/view/{key}', 'getViewQuote');

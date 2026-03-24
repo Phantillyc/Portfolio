@@ -65,6 +65,53 @@
         </div>
     </div>
 
+    <div class="card card-body mb-4">
+        <div class="borderhr">
+            <h2>Progress Slideshow</h2>
+            <p>Upload step images (e.g., sketch, lines, final) and attach character refs per image.</p>
+            {!! Form::open(['url' => 'admin/commissions/edit/' . $commission->id . '/updates/images', 'files' => true]) !!}
+                <div class="form-group">
+                    {!! Form::label('title', 'Image Title') !!}
+                    {!! Form::text('title', null, ['class' => 'form-control']) !!}
+                </div>
+                <div class="form-group">
+                    {!! Form::label('image', 'Image File') !!}
+                    {!! Form::file('image', ['class' => 'form-control']) !!}
+                </div>
+                @for ($i = 0; $i < 4; $i++)
+                    <div class="row">
+                        <div class="col-md-6 form-group">
+                            {!! Form::label('character_name[]', 'Character Name') !!}
+                            {!! Form::text('character_name[]', null, ['class' => 'form-control']) !!}
+                        </div>
+                        <div class="col-md-6 form-group">
+                            {!! Form::label('character_ref[]', 'Character Ref URL') !!}
+                            {!! Form::text('character_ref[]', null, ['class' => 'form-control']) !!}
+                        </div>
+                    </div>
+                @endfor
+                <div class="text-right">{!! Form::submit('Add Progress Image', ['class' => 'btn btn-primary']) !!}</div>
+            {!! Form::close() !!}
+
+            @if ($commission->updateImages->count())
+                <hr>
+                @foreach ($commission->updateImages as $updateImage)
+                    <div class="mb-3">
+                        <h5>{{ $updateImage->title }}</h5>
+                        <img src="{{ $updateImage->imageUrl }}" alt="{{ $updateImage->title }}" class="img-thumbnail mb-2" style="max-height:300px;">
+                        @if ($updateImage->characters->count())
+                            <p>
+                                @foreach ($updateImage->characters as $character)
+                                    {{ $character->name }}@if ($character->reference_url) (<a href="{{ $character->reference_url }}" target="_blank" rel="noopener noreferrer">ref</a>) @endif{{ !$loop->last ? '・' : '' }}
+                                @endforeach
+                            </p>
+                        @endif
+                    </div>
+                @endforeach
+            @endif
+        </div>
+    </div>
+
     @if ($commission->status == 'Pending' || $commission->status == 'Accepted')
         {!! Form::open(['url' => url()->current(), 'id' => 'commissionForm']) !!}
 

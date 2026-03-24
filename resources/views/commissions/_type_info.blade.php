@@ -19,9 +19,15 @@
                     <h5>Available Slots: {{ $type->displaySlots }}</h5>
                 @endif
                 <a class="btn btn-success mb-2" href="{{ url('/commissions/' . $type->category->class->slug . '/new?type=' . $type->id . (isset($source) && $source == $type->key ? '&key=' . $type->key : '')) }}">Request a Commission</a>
+                @if (!session('commissioner_id'))
+                    <p class="small text-muted mb-2">You will be asked to sign in/create a commission account first.</p>
+                @endif
             @else
+                @php
+                    $mode = Settings::get($type->category->class->slug . '_comms_mode') ?: (Settings::get($type->category->class->slug . '_comms_open') ? 'open' : 'closed');
+                @endphp
                 <p>
-                    {{ Settings::get($category->class->slug . '_comms_open') ? 'This commission type is currently unavailable!' : 'Commissions are currently closed!' }}
+                    {{ $mode === 'closed' ? 'Commissions are currently closed!' : 'This commission type is currently unavailable!' }}
                 </p>
             @endif
             @if ($type->quotes_open)
