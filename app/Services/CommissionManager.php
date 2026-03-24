@@ -69,8 +69,9 @@ class CommissionManager extends Service {
                 if (!$type->category->class->is_active) {
                     throw new \Exception('This class is inactive.');
                 }
+                $mode = Settings::get($type->category->class->slug.'_comms_mode') ?: (Settings::get($type->category->class->slug.'_comms_open') ? 'open' : 'closed');
                 // Check that commissions are open for this type and for the class
-                if (!Settings::get($type->category->class->slug.'_comms_open')) {
+                if ($mode == 'closed') {
                     throw new \Exception('Commissions are not open.');
                 }
                 if (!$type->category->is_active) {
@@ -152,6 +153,8 @@ class CommissionManager extends Service {
                 'status'            => 'Pending',
                 'data'              => $data['data'],
                 'payment_processor' => $data['payment_processor'],
+                'image_count'       => $data['image_count'] ?? 1,
+                'is_multi_image'    => $data['is_multi_image'] ?? 0,
             ]);
 
             if (isset($quote) && $quote) {

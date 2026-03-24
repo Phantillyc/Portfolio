@@ -244,7 +244,8 @@ class CommissionType extends Model {
      * @return bool
      */
     public function getCanCommissionAttribute() {
-        if (!Settings::get($this->category->class->slug.'_comms_open') || !$this->is_active || !$this->category->is_active) {
+        $mode = Settings::get($this->category->class->slug.'_comms_mode') ?: (Settings::get($this->category->class->slug.'_comms_open') ? 'open' : 'closed');
+        if ($mode == 'closed' || !$this->is_active || !$this->category->is_active) {
             return 0;
         } elseif (is_int($this->getSlots($this->category->class)) && $this->getSlots($this->category->class) == 0) {
             return 0;

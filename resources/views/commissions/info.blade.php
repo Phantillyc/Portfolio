@@ -14,13 +14,28 @@
 
     {!! $page->text !!}
 
+    @php
+        $mode = Settings::get($class->slug . '_comms_mode') ?: (Settings::get($class->slug . '_comms_open') ? 'open' : 'closed');
+    @endphp
+
     @if (Settings::get($class->slug . '_status'))
         <div class="text-center">
-            <h3>Commission Status: {{ Settings::get($class->slug . '_status') }}</h3>
+            <h3>Commission Status: {!! Settings::get($class->slug . '_status') !!}</h3>
         </div>
     @endif
 
-    @if (Settings::get($class->slug . '_comms_open') && Settings::get($class->slug . '_overall_slots') > 0)
+    <div class="card card-body mb-4">
+        <h4>Commission Portal</h4>
+        <p class="mb-2">Use your commission account to request work and track your active commissions.</p>
+        <div class="d-flex flex-wrap">
+            <a class="btn btn-primary mr-2 mb-2" href="{{ url('commissions/account') }}">
+                {{ session('commissioner_id') ? 'Manage Account' : 'Sign In / Create Account' }}
+            </a>
+            <a class="btn btn-outline-primary mb-2" href="{{ url('commissions/' . $class->slug . '/queue') }}">View Queue</a>
+        </div>
+    </div>
+
+    @if ($mode !== 'closed' && Settings::get($class->slug . '_overall_slots') > 0)
         <div class="text-center">
             <h4>
                 Slots are currently limited.
