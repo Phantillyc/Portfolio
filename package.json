@@ -1,0 +1,28 @@
+{
+    "private": true,
+    "scripts": {
+        "dev": "npm run development",
+        "development": "mix",
+        "watch": "mix watch",
+        "watch-poll": "mix watch -- --watch-options-poll=1000",
+        "hot": "mix watch --hot",
+        "prod": "npm run production",
+        "production": "mix --production",
+        "format": "./node_modules/.bin/blade-formatter --progress --write '**/*.blade.php'"
+    },
+    "devDependencies": {
+        "axios": "^1.6",
+        "blade-formatter": "^1.40.1",
+        "bootstrap": "^4.6",
+        "buffer": "^6.0.3",
+        "jquery": "^3.7",
+        "laravel-mix": "^6.0.43",
+        "popper.js": "^1.12",
+        "postcss": "^8.4.35",
+        "process": "0.11.10",
+        "resolve-url-loader": "^5.0.0",
+        "sass": "^1.71.0",
+        "sass-loader": "^14.1.1"
+    },
+    "version": "3.11.7"
+}
