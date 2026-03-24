@@ -14,13 +14,17 @@
 
     {!! $page->text !!}
 
+    @php
+        $mode = Settings::get($class->slug . '_comms_mode') ?: (Settings::get($class->slug . '_comms_open') ? 'open' : 'closed');
+    @endphp
+
     @if (Settings::get($class->slug . '_status'))
         <div class="text-center">
-            <h3>Commission Status: {{ Settings::get($class->slug . '_status') }}</h3>
+            <h3>Commission Status: {!! Settings::get($class->slug . '_status') !!}</h3>
         </div>
     @endif
 
-    @if (Settings::get($class->slug . '_comms_open') && Settings::get($class->slug . '_overall_slots') > 0)
+    @if ($mode !== 'closed' && Settings::get($class->slug . '_overall_slots') > 0)
         <div class="text-center">
             <h4>
                 Slots are currently limited.

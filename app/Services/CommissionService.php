@@ -147,7 +147,7 @@ class CommissionService extends Service {
             }
 
             // Clean up settings
-            foreach (['comms_open', 'overall_slots', 'full', 'status'] as $setting) {
+            foreach (['comms_open', 'overall_slots', 'full', 'status', 'comms_mode', 'open_text', 'closed_text', 'manual_text'] as $setting) {
                 if (DB::table('site_settings')->where('key', $class->slug.'_'.$setting)->exists()) {
                     DB::table('site_settings')->where('key', $class->slug.'_'.$setting)->delete();
                 }
@@ -519,7 +519,16 @@ class CommissionService extends Service {
         // Add and/or modify site settings
         // If the slug has been changed, check for existing settings and save their values
         if (isset($data['slug_old'])) {
-            foreach ([$data['slug_old'].'_comms_open', $data['slug_old'].'_overall_slots', $data['slug_old'].'_full', $data['slug_old'].'_status'] as $setting) {
+            foreach ([
+                $data['slug_old'].'_comms_open',
+                $data['slug_old'].'_overall_slots',
+                $data['slug_old'].'_full',
+                $data['slug_old'].'_status',
+                $data['slug_old'].'_comms_mode',
+                $data['slug_old'].'_open_text',
+                $data['slug_old'].'_closed_text',
+                $data['slug_old'].'_manual_text',
+            ] as $setting) {
                 if (DB::table('site_settings')->where('key', $setting)->exists()) {
                     $data['settings'][$setting] = Settings::get($setting);
                     DB::table('site_settings')->where('key', $setting)->delete();
@@ -566,6 +575,28 @@ class CommissionService extends Service {
                     'description' => 'A short message used when auto-declining commissions over a slot limit.',
                 ],
             ]);
+        }
+
+        if (!DB::table('site_settings')->where('key', $class->slug.'_comms_mode')->exists()) {
+            DB::table('site_settings')->insert([
+                [
+                    'key'         => $class->slug.'_comms_mode',
+                    'value'       => isset($data['slug_old']) && isset($data['settings'][$data['slug_old'].'_comms_mode']) ? $data['settings'][$data['slug_old'].'_comms_mode'] : 'open',
+                    'description' => 'Commission availability mode: open, closed, or manual.',
+                ],
+            ]);
+        }
+
+        foreach (['open', 'closed', 'manual'] as $status) {
+            if (!DB::table('site_settings')->where('key', $class->slug.'_'.$status.'_text')->exists()) {
+                DB::table('site_settings')->insert([
+                    [
+                        'key'         => $class->slug.'_'.$status.'_text',
+                        'value'       => isset($data['slug_old']) && isset($data['settings'][$data['slug_old'].'_'.$status.'_text']) ? $data['settings'][$data['slug_old'].'_'.$status.'_text'] : '',
+                        'description' => ucfirst($status).' status rich text shown on the front page.',
+                    ],
+                ]);
+            }
         }
 
         // Add and/or modify text pages

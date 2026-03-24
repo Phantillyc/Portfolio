@@ -16,6 +16,7 @@ class Commission extends Model {
     protected $fillable = [
         'commission_key', 'commissioner_id', 'commission_type', 'progress',
         'status', 'data', 'comments', 'payment_processor', 'invoice_data',
+        'image_count', 'is_multi_image', 'awaiting_approval', 'client_feedback',
     ];
 
     /**
@@ -131,6 +132,13 @@ class Commission extends Model {
      */
     public function pieces() {
         return $this->hasMany(CommissionPiece::class, 'commission_id');
+    }
+
+    /**
+     * Get the progress images associated with this commission.
+     */
+    public function updateImages() {
+        return $this->hasMany(CommissionUpdateImage::class, 'commission_id')->orderBy('sort')->orderBy('id');
     }
 
     /**********************************************************************************************
