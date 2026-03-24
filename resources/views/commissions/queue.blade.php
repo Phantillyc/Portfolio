@@ -19,18 +19,17 @@
         </h1>
     </div>
 
-    <p>These are the commissions currently in my {{ strtolower($class->name) }} queue. Only accepted commissions are
-        shown, so pending requests (such as those newly submitted) will not appear.</p>
+    <p>This queue is account-protected. It only shows the commissioner name, image count, and current status.</p>
 
     @if ($commissions->count())
         @foreach ($commissions as $commission)
             <div class="card card-body mb-4">
                 <div class="borderhr">
-                    <h3>{{ $loop->iteration }} ・ {!! $commission->type->displayName !!}</h3>
+                    <h3>{{ $loop->iteration }} ・ {{ $commission->commissioner->name }}</h3>
                     <p>
-                        Progress: {{ $commission->progress }} ・
-                        Submitted {!! $commission->created_at->toFormattedDateString() !!} ・
-                        Last updated {!! $commission->updated_at->toFormattedDateString() !!}
+                        Images Requested: {{ $commission->image_count }} ・
+                        Status: {{ $commission->status }} ・
+                        Progress: {{ $commission->progress }}
                     </p>
                 </div>
             </div>

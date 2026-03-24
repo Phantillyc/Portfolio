@@ -8,12 +8,15 @@ use App\Models\Commission\CommissionCategory;
 use App\Models\Commission\CommissionClass;
 use App\Models\Commission\CommissionQuote;
 use App\Models\Commission\CommissionType;
+use App\Models\Commission\CommissionUpdateImage;
+use App\Models\Commission\Commissioner;
 use App\Models\Gallery\Piece;
 use App\Models\Gallery\PieceImage;
 use App\Models\Gallery\Project;
 use App\Models\TextPage;
 use App\Services\CommissionManager;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Intervention\Image\Facades\Image;
 
 class CommissionController extends Controller {
@@ -121,10 +124,13 @@ class CommissionController extends Controller {
         if (!$class) {
             abort(404);
         }
+        if (!$this->getLoggedInCommissioner($request)) {
+            return redirect()->to('commissions/account?redirect='.urlencode($request->fullUrl()));
+        }
 
         return view('commissions.queue', [
             'class'       => $class,
-            'commissions' => Commission::class($class->id)->where('status', 'Accepted')->orderBy('created_at', 'ASC')->get(),
+            'commissions' => Commission::class($class->id)->whereIn('status', ['Pending', 'Accepted', 'Complete'])->orderBy('created_at', 'ASC')->get(),
         ]);
     }
 
@@ -235,7 +241,8 @@ class CommissionController extends Controller {
             abort(404);
         }
         // check that the class is active and commissions of the global type are open,
-        if (!Settings::get($type->category->class->slug.'_comms_open') || !$type->category->class->is_active) {
+        $mode = Settings::get($type->category->class->slug.'_comms_mode') ?: (Settings::get($type->category->class->slug.'_comms_open') ? 'open' : 'closed');
+        if ($mode === 'closed' || !$type->category->class->is_active) {
             abort(404);
         }
         // and, if relevant, that the key is good.
@@ -258,7 +265,23 @@ class CommissionController extends Controller {
      * @return \Illuminate\Http\RedirectResponse
      */
     public function postNewCommission(Request $request, CommissionManager $service, $id = null) {
+        $commissioner = $this->getLoggedInCommissioner($request);
+        if (!$commissioner) {
+            flash('Please log in before submitting a commission request.')->error();
+
+            return redirect()->to('commissions/account');
+        }
+
         $type = CommissionType::find($request->get('type'));
+        $mode = Settings::get($type->category->class->slug.'_comms_mode') ?: (Settings::get($type->category->class->slug.'_comms_open') ? 'open' : 'closed');
+        if ($mode === 'closed') {
+            abort(404);
+        }
+        if ($mode === 'manual' && $commissioner->manual_requests_used > 0) {
+            flash('Manual mode currently allows one request per account. You have already used your request.')->error();
+
+            return redirect()->back();
+        }
 
         // Form an array of possible answers based on configured fields,
         // Set any un-set toggles (since Laravel does not pass anything on for them),
@@ -294,8 +317,20 @@ class CommissionController extends Controller {
             'type', 'key', 'additional_information', 'quote_key',
         ] + $answerArray);
         $data['ip'] = $request->ip();
+        $data['name'] = $commissioner->name;
+        $data['email'] = $commissioner->email;
+        $data['contact'] = $commissioner->contact ?: $commissioner->email;
+        $data['image_count'] = max(1, (int) $request->get('image_count', 1));
+        $data['is_multi_image'] = $data['image_count'] > 1;
 
         if (!$id && $commission = $service->createCommission($data)) {
+            $commission->update([
+                'image_count'     => $data['image_count'],
+                'is_multi_image'  => $data['is_multi_image'],
+            ]);
+            if ($mode === 'manual') {
+                $commissioner->increment('manual_requests_used');
+            }
             flash('Commission request submitted successfully.')->success();
 
             return redirect()->to('commissions/view/'.$commission->commission_key);
@@ -315,15 +350,120 @@ class CommissionController extends Controller {
      *
      * @return \Illuminate\Contracts\Support\Renderable
      */
-    public function getViewCommission($key) {
+    public function getViewCommission($key, Request $request) {
         $commission = Commission::where('commission_key', $key)->first();
         if (!$commission) {
             abort(404);
         }
+        if (!$this->canAccessCommission($request, $commission)) {
+            return redirect()->to('commissions/account?redirect='.urlencode(url('commissions/view/'.$commission->commission_key)));
+        }
 
         return view('commissions.view_commission', [
             'commission' => $commission,
+            'latestImage' => $commission->updateImages()->latest('sort')->latest('id')->first(),
         ]);
+    }
+
+    public function getAccount(Request $request) {
+        return view('commissions.account', [
+            'redirect' => $request->get('redirect'),
+            'commissioner' => $this->getLoggedInCommissioner($request),
+        ]);
+    }
+
+    public function postRegisterAccount(Request $request) {
+        $data = $request->validate([
+            'username' => 'required|string|min:3|max:50|alpha_dash|unique:commissioners,username',
+            'password' => 'required|string|min:8|confirmed',
+            'email'    => 'required|email|max:191|unique:commissioners,email',
+            'name'     => 'nullable|string|max:191',
+        ]);
+
+        $commissioner = Commissioner::create([
+            'username'   => $data['username'],
+            'password'   => Hash::make($data['password']),
+            'email'      => $data['email'],
+            'name'       => $data['name'] ?? $data['username'],
+            'contact'    => $data['email'],
+            'is_banned'  => 0,
+        ]);
+
+        $request->session()->put('commissioner_id', $commissioner->id);
+        flash('Account created and signed in.')->success();
+
+        return redirect()->to($request->get('redirect') ?: url('/'));
+    }
+
+    public function postLoginAccount(Request $request) {
+        $data = $request->validate([
+            'username' => 'required|string',
+            'password' => 'required|string',
+        ]);
+
+        $commissioner = Commissioner::where('username', $data['username'])->first();
+        if (!$commissioner || !$commissioner->password || !Hash::check($data['password'], $commissioner->password)) {
+            flash('Invalid username or password.')->error();
+
+            return redirect()->back();
+        }
+
+        $request->session()->put('commissioner_id', $commissioner->id);
+        flash('Signed in.')->success();
+
+        return redirect()->to($request->get('redirect') ?: url('/'));
+    }
+
+    public function postLogoutAccount(Request $request) {
+        $request->session()->forget('commissioner_id');
+        flash('Signed out.')->success();
+
+        return redirect()->to('commissions/account');
+    }
+
+    public function postCommissionApproval(Request $request, $key) {
+        $commission = Commission::where('commission_key', $key)->firstOrFail();
+        if (!$this->canAccessCommission($request, $commission)) {
+            abort(403);
+        }
+
+        $data = $request->validate([
+            'action'   => 'required|in:approve,request_edits',
+            'feedback' => 'nullable|string|max:10000',
+        ]);
+
+        if ($data['action'] === 'approve') {
+            $commission->update([
+                'awaiting_approval' => 0,
+                'status'            => 'Complete',
+                'client_feedback'   => $data['feedback'],
+            ]);
+        } else {
+            $commission->update([
+                'awaiting_approval' => 0,
+                'status'            => 'Accepted',
+                'client_feedback'   => $data['feedback'],
+            ]);
+        }
+
+        flash('Commission response submitted.')->success();
+
+        return redirect()->back();
+    }
+
+    private function getLoggedInCommissioner(Request $request) {
+        $id = $request->session()->get('commissioner_id');
+        if (!$id) {
+            return null;
+        }
+
+        return Commissioner::find($id);
+    }
+
+    private function canAccessCommission(Request $request, Commission $commission) {
+        $commissioner = $this->getLoggedInCommissioner($request);
+
+        return $commissioner && $commissioner->id === $commission->commissioner_id;
     }
 
     /**
@@ -334,10 +474,13 @@ class CommissionController extends Controller {
      *
      * @return \Illuminate\Contracts\Support\Renderable
      */
-    public function getViewCommissionImage($key, $id) {
+    public function getViewCommissionImage($key, $id, Request $request) {
         $commission = Commission::where('commission_key', $key)->first();
         if (!$commission) {
             abort(404);
+        }
+        if (!$this->canAccessCommission($request, $commission)) {
+            abort(403);
         }
 
         $image = PieceImage::where('id', $id)->first();
@@ -440,3 +583,6 @@ class CommissionController extends Controller {
         ]);
     }
 }
+        if (!$this->getLoggedInCommissioner($request)) {
+            return redirect()->to('commissions/account?redirect='.urlencode($request->fullUrl()));
+        }
