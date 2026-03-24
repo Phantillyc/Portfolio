@@ -19,6 +19,19 @@
         <p class="mb-0">Use filters below to quickly find projects, tags, and titles.</p>
     </div>
 
+    @if (config('aldebaran.commissions.enabled') && isset($commissionClasses) && $commissionClasses->count())
+        <div class="card card-body mb-4 border-primary">
+            <h4 class="mb-1">Interested in a Commission?</h4>
+            <p class="mb-2">You can request commissions directly from the commission portal.</p>
+            <div class="d-flex flex-wrap">
+                <a class="btn btn-primary mr-2 mb-2" href="{{ url('commissions/account') }}">Commission Account</a>
+                @foreach ($commissionClasses as $class)
+                    <a class="btn btn-outline-primary mr-2 mb-2" href="{{ url('commissions/' . $class->slug) }}">{{ $class->name }} Info</a>
+                @endforeach
+            </div>
+        </div>
+    @endif
+
     {!! $page ? $page->text : '' !!}
 
     <div>

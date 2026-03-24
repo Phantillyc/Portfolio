@@ -2,12 +2,6 @@
 
 @section('content')
 
-    @if ($page)
-        {!! $page->text !!}
-    @else
-        <p>Please finish initial site setup!</p>
-    @endif
-
     @if (config('aldebaran.commissions.enabled'))
         <div class="card mb-4 border-primary">
             <div class="card-body d-flex justify-content-between align-items-center flex-wrap">
@@ -45,6 +39,12 @@
                 </div>
             </div>
         @endforeach
+    @endif
+
+    @if ($page)
+        {!! $page->text !!}
+    @else
+        <p>Please finish initial site setup!</p>
     @endif
 
     @if (config('aldebaran.settings.email_features') && Settings::get('display_mailing_lists') && $mailingLists->count())
