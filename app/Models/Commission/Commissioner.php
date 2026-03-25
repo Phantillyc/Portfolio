@@ -16,6 +16,11 @@ class Commissioner extends Model {
     protected $fillable = [
         'name', 'email', 'contact', 'receive_notifications', 'is_banned',
         'payment_email', 'customer_id', 'username', 'password', 'manual_requests_used',
+        'remember_token',
+    ];
+
+    protected $hidden = [
+        'password', 'remember_token',
     ];
 
     /**
@@ -60,6 +65,20 @@ class Commissioner extends Model {
      */
     public function commissions() {
         return $this->hasMany(Commission::class, 'commissioner_id');
+    }
+
+    /**
+     * Get manual commission permissions associated with this commissioner.
+     */
+    public function manualPermissions() {
+        return $this->hasMany(CommissionManualPermission::class, 'commissioner_id');
+    }
+
+    /**
+     * Get commission comments authored by this commissioner.
+     */
+    public function commissionComments() {
+        return $this->hasMany(CommissionComment::class, 'author_commissioner_id');
     }
 
     /**********************************************************************************************
