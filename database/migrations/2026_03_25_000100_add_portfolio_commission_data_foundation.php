@@ -76,7 +76,7 @@ return new class extends Migration {
                 $table->timestamp('consumed_at')->nullable();
                 $table->timestamps();
 
-                $table->foreign('commissioner_id')->references('id')->on('commissioners')->onDelete('cascade');
+                $table->foreign('commissioner_id', 'cmp_commissioner_id_fk')->references('id')->on('commissioners')->onDelete('cascade');
             });
         }
 
@@ -115,7 +115,7 @@ return new class extends Migration {
                 $table->integer('sort_order')->default(0);
                 $table->timestamps();
 
-                $table->foreign('character_id')->references('id')->on('characters')->onDelete('cascade');
+                $table->foreign('character_id', 'cdc_character_id_fk')->references('id')->on('characters')->onDelete('cascade');
             });
         }
 
@@ -132,7 +132,7 @@ return new class extends Migration {
                 $table->text('notes')->nullable();
                 $table->timestamps();
 
-                $table->foreign('character_id')->references('id')->on('characters')->onDelete('cascade');
+                $table->foreign('character_id', 'cfr_character_id_fk')->references('id')->on('characters')->onDelete('cascade');
             });
         }
 
@@ -151,7 +151,7 @@ return new class extends Migration {
                 $table->unsignedBigInteger('created_by_admin_id')->nullable()->index();
                 $table->timestamps();
 
-                $table->foreign('source_commission_id')->references('id')->on('commissions')->nullOnDelete();
+                $table->foreign('source_commission_id', 'gitm_source_commission_fk')->references('id')->on('commissions')->nullOnDelete();
             });
         }
 
@@ -165,11 +165,11 @@ return new class extends Migration {
                 $table->boolean('is_final_from_commission')->default(false)->index();
                 $table->timestamps();
 
-                $table->foreign('gallery_item_id')->references('id')->on('gallery_items')->onDelete('cascade');
+                $table->foreign('gallery_item_id', 'gim_gallery_item_fk')->references('id')->on('gallery_items')->onDelete('cascade');
             });
 
             Schema::table('gallery_items', function (Blueprint $table) {
-                $table->foreign('cover_image_id')->references('id')->on('gallery_images')->nullOnDelete();
+                $table->foreign('cover_image_id', 'gitm_cover_image_fk')->references('id')->on('gallery_images')->nullOnDelete();
             });
         }
 
@@ -181,8 +181,8 @@ return new class extends Migration {
                 $table->timestamps();
 
                 $table->unique(['gallery_item_id', 'character_id']);
-                $table->foreign('gallery_item_id')->references('id')->on('gallery_items')->onDelete('cascade');
-                $table->foreign('character_id')->references('id')->on('characters')->onDelete('cascade');
+                $table->foreign('gallery_item_id', 'gic_gallery_item_fk')->references('id')->on('gallery_items')->onDelete('cascade');
+                $table->foreign('character_id', 'gic_character_fk')->references('id')->on('characters')->onDelete('cascade');
             });
         }
 
@@ -196,7 +196,7 @@ return new class extends Migration {
                 $table->integer('sort_order')->default(0);
                 $table->timestamps();
 
-                $table->foreign('commission_id')->references('id')->on('commissions')->onDelete('cascade');
+                $table->foreign('commission_id', 'crc_commission_fk')->references('id')->on('commissions')->onDelete('cascade');
             });
         }
 
@@ -212,7 +212,7 @@ return new class extends Migration {
                 $table->timestamps();
 
                 $table->unique(['commission_id', 'image_index']);
-                $table->foreign('commission_id')->references('id')->on('commissions')->onDelete('cascade');
+                $table->foreign('commission_id', 'cimg_commission_fk')->references('id')->on('commissions')->onDelete('cascade');
             });
         }
 
@@ -224,8 +224,8 @@ return new class extends Migration {
                 $table->timestamps();
 
                 $table->unique(['commission_image_id', 'commission_request_character_id'], 'commission_image_assignment_unique');
-                $table->foreign('commission_image_id')->references('id')->on('commission_images')->onDelete('cascade');
-                $table->foreign('commission_request_character_id')->references('id')->on('commission_request_characters')->onDelete('cascade');
+                $table->foreign('commission_image_id', 'cia_image_fk')->references('id')->on('commission_images')->onDelete('cascade');
+                $table->foreign('commission_request_character_id', 'cia_request_character_fk')->references('id')->on('commission_request_characters')->onDelete('cascade');
             });
         }
 
@@ -239,7 +239,7 @@ return new class extends Migration {
                 $table->unsignedBigInteger('uploaded_by_admin_id')->nullable()->index();
                 $table->timestamps();
 
-                $table->foreign('commission_image_id')->references('id')->on('commission_images')->onDelete('cascade');
+                $table->foreign('commission_image_id', 'cipe_image_fk')->references('id')->on('commission_images')->onDelete('cascade');
             });
         }
 
@@ -254,8 +254,8 @@ return new class extends Migration {
                 $table->longText('body');
                 $table->timestamps();
 
-                $table->foreign('commission_id')->references('id')->on('commissions')->onDelete('cascade');
-                $table->foreign('author_commissioner_id')->references('id')->on('commissioners')->nullOnDelete();
+                $table->foreign('commission_id', 'ccmt_commission_fk')->references('id')->on('commissions')->onDelete('cascade');
+                $table->foreign('author_commissioner_id', 'ccmt_author_commissioner_fk')->references('id')->on('commissioners')->nullOnDelete();
             });
         }
 
@@ -268,8 +268,8 @@ return new class extends Migration {
                 $table->timestamp('published_at')->nullable()->index();
                 $table->timestamps();
 
-                $table->foreign('commission_image_id')->references('id')->on('commission_images')->onDelete('cascade');
-                $table->foreign('gallery_item_id')->references('id')->on('gallery_items')->onDelete('cascade');
+                $table->foreign('commission_image_id', 'cgp_image_fk')->references('id')->on('commission_images')->onDelete('cascade');
+                $table->foreign('gallery_item_id', 'cgp_gallery_item_fk')->references('id')->on('gallery_items')->onDelete('cascade');
             });
         }
     }
