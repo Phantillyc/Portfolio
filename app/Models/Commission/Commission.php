@@ -4,9 +4,18 @@ namespace App\Models\Commission;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class Commission extends Model {
     use HasFactory;
+
+    public const LIFECYCLE_DRAFT = 'draft';
+    public const LIFECYCLE_ACTIVE = 'active';
+    public const LIFECYCLE_APPROVED = 'approved';
+    public const LIFECYCLE_MANUALLY_CLOSED = 'manually_closed';
+
+    public const ADMIN_PHASE_DISCUSSING_DETAILS = 'discussing_details';
+    public const ADMIN_PHASE_PENDING = 'pending';
 
     /**
      * The attributes that are mass assignable.
@@ -17,6 +26,8 @@ class Commission extends Model {
         'commission_key', 'commissioner_id', 'commission_type', 'progress',
         'status', 'data', 'comments', 'payment_processor', 'invoice_data',
         'image_count', 'is_multi_image', 'awaiting_approval', 'client_feedback',
+        'public_token', 'lifecycle_state', 'is_draft', 'admin_phase', 'requested_commission_type',
+        'submitted_at', 'manually_closed_at', 'vision_request_text', 'general_notes',
     ];
 
     /**
@@ -36,6 +47,9 @@ class Commission extends Model {
         'cost_data'    => 'array',
         'description'  => 'array',
         'invoice_data' => 'array',
+        'is_draft' => 'boolean',
+        'submitted_at' => 'datetime',
+        'manually_closed_at' => 'datetime',
     ];
 
     /**
@@ -53,6 +67,14 @@ class Commission extends Model {
      * @var string
      */
     public $timestamps = true;
+
+    protected static function booted() {
+        static::creating(function ($commission) {
+            if (!$commission->public_token) {
+                $commission->public_token = (string) Str::uuid();
+            }
+        });
+    }
 
     /**
      * Validation rules for commission creation.
@@ -139,6 +161,34 @@ class Commission extends Model {
      */
     public function updateImages() {
         return $this->hasMany(CommissionUpdateImage::class, 'commission_id')->orderBy('sort')->orderBy('id');
+    }
+
+    /**
+     * Get request characters for this commission.
+     */
+    public function requestCharacters() {
+        return $this->hasMany(CommissionRequestCharacter::class, 'commission_id')->orderBy('sort_order')->orderBy('id');
+    }
+
+    /**
+     * Get image cards for this commission.
+     */
+    public function images() {
+        return $this->hasMany(CommissionImage::class, 'commission_id')->orderBy('image_index')->orderBy('id');
+    }
+
+    /**
+     * Get comments for this commission.
+     */
+    public function threadComments() {
+        return $this->hasMany(CommissionComment::class, 'commission_id')->orderBy('created_at')->orderBy('id');
+    }
+
+    /**
+     * Get gallery items published from this commission.
+     */
+    public function publishedGalleryItems() {
+        return $this->hasMany(\App\Models\GalleryItem::class, 'source_commission_id');
     }
 
     /**********************************************************************************************
