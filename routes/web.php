@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\CommissionController as AdminCommissionController;
+use App\Http\Controllers\CommissionAuthController;
 use App\Http\Controllers\CommissionController;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\GalleryController;
@@ -79,6 +80,17 @@ Route::controller(CommissionController::class)->prefix('commissions')->group(fun
 
     // Clobbers the above routes otherwise
     Route::get('{class}/{key}', 'getClassPage');
+});
+
+Route::controller(CommissionAuthController::class)->prefix('commission-auth')->group(function () {
+    Route::get('/', function () {
+        return redirect()->to('commission-auth/login');
+    });
+    Route::get('login', 'getLogin')->name('commission.account.login');
+    Route::get('signup', 'getSignup')->name('commission.account.signup');
+    Route::post('register', 'postRegister');
+    Route::post('login', 'postLogin');
+    Route::post('logout', 'postLogout');
 });
 
 // WEBHOOK ENDPOINTS

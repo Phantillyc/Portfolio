@@ -40,6 +40,10 @@ return [
             'driver'   => 'session',
             'provider' => 'users',
         ],
+        'commission_client' => [
+            'driver'   => 'session',
+            'provider' => 'commission_clients',
+        ],
     ],
 
     /*
@@ -63,6 +67,10 @@ return [
         'users' => [
             'driver' => 'eloquent',
             'model'  => App\Models\User::class,
+        ],
+        'commission_clients' => [
+            'driver' => 'eloquent',
+            'model'  => App\Models\Commission\CommissionClient::class,
         ],
 
         // 'users' => [
